@@ -1,0 +1,251 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts}
+\usepackage[margin=2cm]{geometry}
+\usepackage{hyperref}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Polynomial Approximations}
+\author{William McLean}
+\date{\today}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\maketitle
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Chebyshev Polynomials}
+The Chebyshev polynomials are defined by the recurrence relation
+\begin{equation}\label{eq: Chebyshev recurrence}
+T_{n+1}(x)=2xT_n(x)-T_{n-1}(x)\quad\text{for $n\ge1$,}
+\quad\text{with $T_0(x)=1$ and $T_1(x)=x$.}
+\end{equation}
+A simple induction shows that
+\begin{equation}\label{eq: Tn cos}
+T_n(\cos\theta)=\cos n\theta\quad\text{for all $n\ge0$,}
+\end{equation}
+and from this we find, using the substitution~$x=\cos\theta$, that
+\[
+\int_{-1}^1\frac{T_n(x)T_m(x)}{\sqrt{1-x^2}}\,dx=\begin{cases}
+\pi,&m=n=0,\\
+\pi/2,&m=n\ge1,\\
+0,&\text{otherwise.}\end{cases}
+\]
+Thus, if $f$ is a polynomial of degree~$n-1$, then
+\[
+f(x)=\frac{a_0}{2}+\sum_{k=1}^{n-1} a_kT_k(x)\quad\text{for $-1\le x\le 1$,}
+\]
+where the Chebyshev coefficients of~$f$ are
+\[
+a_k=\frac{2}{\pi}\int_{-1}^{1}\frac{f(x)T_k(x)\,dx}{\sqrt{1-x^2}}
+    =\frac{2}{\pi}\int_0^\pi f(\cos\theta)\cos k\theta\,d\theta
+\quad\text{for $k\ge0$.}
+\]
+Let 
+\[
+x_j=\cos\theta_j\quad\text{where}\quad\theta_j=\frac{(2j+1)\pi}{2n}
+\quad\text{for $0\le j\le n-1$,}
+\]
+then, assuming still that $f$ is a polynomial of degree~$n-1$,
+\[
+a_k=\frac{2}{n}\sum_{j=0}^{n-1}f(x_j)\cos k\theta_j\quad
+\text{for $0\le k\le n-1$.}
+\]
+Thus, we can compute the $a_k$ by applying a type-II discrete cosine transform 
+to the function values $f(x_j)$, and then dividing by~$n$.  Also, since
+\[
+f(x_j)=\frac{a_0}{2}+\sum_{k=1}^{n-1}a_k\cos k\theta_j\quad
+\text{for $0\le j\le n-1$,}
+\]
+we can reconstruct $f(x_j)$ from the $a_k$ via a type-III discrete cosine 
+transform.  To evaluate $f(x)$ for any~$x\in[-1,1]$, we can use the Clenshaw 
+algorithm: put $b_{n+1}=b_n=0$ and compute
+\[
+b_k=a_k+2xb_{k+1}-b_{k+2}\quad\text{for $k=n-1$, $n-2$, \dots, $0$,}
+\]
+noting that $b_k=b_k(x)$. Then,
+\begin{align*}
+f(x)&=\tfrac12(b_0-2xb_1+b_2)+\sum_{k=1}^{n-1}(b_k-2xb_{k+1}+b_{k+2})T_k(x)\\
+    &=\tfrac12(b_0-2xb_1+b_2)+\sum_{k=0}^{n-2}b_{k+1}T_{k+1}(x)
+    -\sum_{k=1}^{n-1}2xb_{k+1}T_k(x)+\sum_{k=2}^nb_{k+1}T_{k-1}(x)\\
+    &=\tfrac12(b_0-2xb_1+b_2)+b_1T_1(x)-b_2T_0(x)+\sum_{k=1}^{n-2}b_{k+1}
+    [T_{k+1}(x)-2xT_k(x)+T_{k-1}(x)],
+\end{align*}
+and so the recurrence relation~\eqref{eq: Chebyshev recurrence} implies that
+\[
+f(x)=\tfrac12(b_0-b_2).
+\]
+
+Using the relation~\eqref{eq: Tn cos} we find that
+\[
+2T_n(x)=\frac{T_{n+1}'(x)}{n+1}-\frac{T_{n-1}'(x)}{n-1}\quad\text{for $n\ge2$,}
+\]
+with $2T_1(x)=T_2'(x)/2$ and $2T_0(x)=2T_1'(x)$.  Since 
+$T_k(-1)=\cos k\pi=(-1)^k$,
+\begin{align*}
+\int_{-1}^xf(y)\,dy&=\frac{a_0}{2}\,\frac{T_1(x)+1}{1}
+    +\frac{a_1}{2}\,\frac{T_2(x)-1}{2}\\
+    &\qquad{}+\sum_{k=2}^n\frac{a_k}{2}\biggl(
+     \frac{T_{k+1}(x)-(-1)^{k+1}}{k+1}
+    -\frac{T_{k-1}(x)-(-1)^{k-1}}{k-1}\biggr)\\
+&=\sum_{k=1}^{n+1}\frac{a_{k-1}}{2}\,\frac{T_k(x)-(-1)^k}{k}
+    -\sum_{k=1}^{n-1}\frac{a_{k+1}}{2}\,\frac{T_k(x)-(-1)^k}{k},
+\end{align*}
+and hence
+\[
+\int_{-1}^x f(y)\,dy=\frac{A_0}{2}+\sum_{k=1}^{n+1}A_kT_k(x)
+\]
+where
+\[
+A_k=\frac{a_{k-1}-a_{k+1}}{2k}\quad\text{for $1\le k\le n$,}
+\quad\text{with}\quad A_{n+1}=\frac{a_n}{2(n+1)},
+\]
+and
+\[
+A_0=(-1)^n\frac{a_n}{n+1}+\sum_{k=1}^n(-1)^k\frac{a_{k+1}-a_{k-1}}{k}
+    =2\sum_{k=1}^{n+1}(-1)^{k-1}A_k.
+\]
+In particular,
+\[
+\int_{-1}^1f(y)\,dy=\frac{A_0}{2}+\sum_{k=1}^{n+1}A_k
+    =\sum_{k=1}^{n+1}[1+(-1)^{k-1}]A_k,
+\]
+that is,
+\[
+\int_{-1}^1f(x)\,dx=2\sum_{j=1}^m A_{2j-1}\quad\text{for}\quad
+m=\begin{cases}
+(n/2)+1,&\text{if $n$ is even,}\\
+(n+1)/2,&\text{if $n$ is odd.}
+\end{cases}
+\]
+Alternatively, since $T_k(-x)=(-1)^kT_k(x)$, we have
+\[
+\int_{-1}^1T_k(x)\,dx=0\quad\text{if $k$ is odd,}
+\]
+whereas
+\[
+\int_{-1}^1T_k(x)\,dx=\frac{1}{k+1}-\frac{1}{k-1}=\frac{-2}{(k+1)(k-1)}
+\quad\text{if $k\ge2$ is even,}
+\]
+so, with~$m=\lfloor n/2\rfloor$,
+\begin{align*}
+\int_{-1}^1f(x)\,dz&=a_0
+    -2\sum_{j=1}^m\frac{a_{2j}}{(2j+1)(2j-1)}\\
+    &=a_0-2\biggl(\frac{a_2}{3\times1}+\frac{a_4}{5\times3}+\cdots
+    +\frac{a_{2m}}{(2m+1)(2m-1)}\biggr).
+\end{align*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Remez algorithm}
+Let $\mathbb{P}_n$ denote the vector space of polynomials of degree at most~$n$ 
+and having real coefficients. Given a continuous 
+function~$f:[-1,1]\to\mathbb{R}$, the minimax polynomial approximation~$p$ of 
+degree~$n$ has the property that
+\[
+p\in\mathbb{P}_n\quad\text{and}\quad
+\max_{-1\le x\le 1}|f(x)-p(x)|=\min_{q\in\mathbb{P}_n}\max_{-1\le x\le 1}
+|f(x)-q(x)|.
+\]
+The Remez algorithm is an iterative procedure that computes $p$ as follows.
+
+First we define the Chebyshev points
+\[
+x_j=\cos\frac{\pi(n+1-j)}{n+1}\quad\text{for $0\le j\le n+1$,}
+\]
+and note that $-1=x_0<x_1<x_2<\cdots<x_{n+1}=1$.  By computing the relevant 
+divided differences, we find the Newton forms on the polynomials $p_1$, 
+$p_2\in\mathbb{P}_n$ satisfying
+\[
+p_1(x_j)=f(x_j)\quad\text{and}\quad p_2(x_j)=(-1)^j
+\quad\text{for $0\le j\le n$.}
+\]
+For any real number~$E$, the polynomial
+\[
+p(x)=p_1(x)-E\,p_2(x)
+\]
+belongs to~$\mathbb{P}_n$ and satisfies
+\[
+p(x_j)=f(x_j)-(-1)^jE\quad\text{for $0\le j\le n$,}
+\]
+We now choose $E$ so the same property holds for~$j=n+1$, that is,
+\[
+p_1(x_{n+1})-Ep_2(x_{n+1})=f(x_{n+1})-(-1)^{n+1}E,
+\]
+which yields the formula
+\begin{equation}\label{eq: E}
+E=\frac{p_1(x_{n+1})-f(x_{n+1})}{p_2(x_{n+1})+(-1)^n}
+\end{equation}
+and ensures that
+\begin{equation}\label{eq: equioscillation}
+f(x_j)=p(x_j)+(-1)^jE\quad\text{for $0\le j\le n+1$.}
+\end{equation}
+Note that $p_2$ has a zero between $x_{i-1}$~and $x_i$ for $1\le i\le n$, 
+so $p_2(x_{n+1})$ cannot be zero unless $p_2$ is identically zero, which is the 
+case only if~$E=0$.  Otherwise, $p_2(x_{n+1})$ must have the same sign 
+as~$p_2(x_n)=(-1)^n$ so the denominator in~\eqref{eq: E} is not zero.  We put
+\[
+z_{\max}=\max_{0\le j\le n+1}|f(x_j)-p(x_j)|
+\quad\text{and}\quad
+z_{\min}=\min{0\le j\le n+1}|f(x_j)-p(x_j)|,
+\]
+and stop if $z_{\max}-z_{\min}<\epsilon$ for a chosen tolerance~$\epsilon>0$.
+
+If this stopping criterion is not met, we proceed to the next step of the 
+algorithm, finding points
+\[
+-1\le x_0'< x_1'<\cdots<x_n'<x_{n+1}'\le1
+\]
+that satisfy, if $E>0$,
+\[
+(-1)^{j-1}(f-p)(x_j')=\min_{x_{j-1}\le x\le x_{j+1}}(-1)^{j-1}(f-p)(x)
+\quad\text{for $1\le j\le n$,}
+\]
+with
+\[
+-(f-p)(x_0')=\min_{-1\le x\le x_1}-(f-p)(x)
+\quad\text{and}\quad
+(-1)^n(f-p)(x_{n+1}')=\min_{x_n\le x\le1}(-1)^n(f-p)(x).
+\]
+If $E<0$, then we use $\max$ instead of~$\min$.  Now put $x_j=x_j'$, compute 
+as before $p\in\mathbb{P}_n$ satisfying \eqref{eq: equioscillation}, and stop 
+if the new $z_{\max}$ and $z_{\min}$ satisfy $z_{\max}-z_{\min}<\epsilon$.  
+It can be shown that $z_{\max}-z_{\min}$ converges quadratically to zero.
+
+The Remez algorithm can be modified to produce a polynomial~$p$ that 
+satisfies $p(\pm1)=f(\pm1)$.  We modify the definition of~$p_2$, by requiring
+\[
+p_2(x_0)=0\quad\text{and}\quad p_2(x_j)=(-1)^jE\quad\text{for $1\le j\le n$,}
+\]
+and modify the definition of~$E$, by requiring
+\[
+E=\frac{p_1(x_{n+1})-f(x_{n+1})}{p_2(x_{n+1})}.
+\]
+In this way,
+\[
+f(x_j)=p(x_j)+(-1)^jE\quad\text{for $1\le j\le n$,}
+\]
+with
+\[
+f(x_0)=p(x_0)\quad\text{and}\quad f(x_{n+1})=p(x_{n+1}).
+\]
+The choice of~$x_j'$ is the same as before for~$1\le j\le n$, but now the 
+first and last points are fixed: $x_0'=x_0=-1$~and $x_{n+1}'=x_{n+1}=1$.
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
